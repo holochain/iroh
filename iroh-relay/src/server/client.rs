@@ -19,6 +19,7 @@ use crate::{
     protos::{
         disco,
         relay::{ClientToRelayMsg, Datagrams, PING_INTERVAL, RelayToClientMsg},
+        streams::BytesStreamSink,
     },
     server::{
         clients::Clients,
@@ -37,12 +38,18 @@ pub(super) struct Packet {
 }
 
 /// Configuration for a [`Client`].
+///
+/// Generic over the stream type to support different WebSocket implementations.
 #[derive(Debug)]
-pub(super) struct Config {
-    pub(super) endpoint_id: EndpointId,
-    pub(super) stream: RelayedStream,
-    pub(super) write_timeout: Duration,
-    pub(super) channel_capacity: usize,
+pub struct Config<S> {
+    /// The endpoint ID of the client
+    pub endpoint_id: EndpointId,
+    /// The relayed stream connection
+    pub stream: RelayedStream<S>,
+    /// Write timeout for the client connection
+    pub write_timeout: Duration,
+    /// Channel capacity for internal message queues
+    pub channel_capacity: usize,
 }
 
 /// The [`Server`] side representation of a [`Client`]'s connection.
@@ -50,7 +57,7 @@ pub(super) struct Config {
 /// [`Server`]: crate::server::Server
 /// [`Client`]: crate::client::Client
 #[derive(Debug)]
-pub(super) struct Client {
+pub struct Client {
     /// Identity of the connected peer.
     endpoint_id: EndpointId,
     /// Connection identifier.
@@ -71,12 +78,15 @@ impl Client {
     /// Creates a client from a connection & starts a read and write loop to handle io to and from
     /// the client
     /// Call [`Client::shutdown`] to close the read and write loops before dropping the [`Client`]
-    pub(super) fn new(
-        config: Config,
+    pub(super) fn new<S>(
+        config: Config<S>,
         connection_id: u64,
         clients: &Clients,
         metrics: Arc<Metrics>,
-    ) -> Client {
+    ) -> Client
+    where
+        S: BytesStreamSink + Send + 'static,
+    {
         let Config {
             endpoint_id,
             stream,
@@ -251,9 +261,9 @@ pub enum RunError {
 ///     - receive a ping and write a pong back
 ///     to speak to the endpoint ID associated with that client.
 #[derive(Debug)]
-struct Actor {
+struct Actor<S> {
     /// IO Stream to talk to the client
-    stream: RelayedStream,
+    stream: RelayedStream<S>,
     /// Maximum time we wait to complete a write to the client
     timeout: Duration,
     /// Packets queued to send to the client
@@ -274,7 +284,10 @@ struct Actor {
     metrics: Arc<Metrics>,
 }
 
-impl Actor {
+impl<S> Actor<S>
+where
+    S: BytesStreamSink,
+{
     async fn run(mut self, done: CancellationToken) {
         // Note the accept and disconnects metrics must be in a pair.  Technically the
         // connection is accepted long before this in the HTTP server, but it is clearer to
@@ -492,6 +505,11 @@ pub(crate) enum SendError {
     Closed,
 }
 
+/// Error returned when forwarding a packet to a client fails.
+///
+/// This error occurs when the relay server cannot deliver a packet to its intended
+/// recipient, typically due to the client's send queue being full or the client
+/// disconnecting.
 #[stack_error(derive, add_meta)]
 #[error("failed to forward {scope:?} packet: {reason:?}")]
 pub struct ForwardPacketError {

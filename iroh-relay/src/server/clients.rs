@@ -16,7 +16,7 @@ use tracing::{debug, trace};
 
 use super::client::{Client, Config, ForwardPacketError};
 use crate::{
-    protos::relay::Datagrams,
+    protos::{relay::Datagrams, streams::BytesStreamSink},
     server::{
         client::{PacketScope, SendError},
         metrics::Metrics,
@@ -24,8 +24,12 @@ use crate::{
 };
 
 /// Manages the connections to all currently connected clients.
+/// Registry of connected relay clients.
+///
+/// This type manages the collection of active client connections and
+/// handles routing messages between them.
 #[derive(Debug, Default, Clone)]
-pub(super) struct Clients(Arc<Inner>);
+pub struct Clients(Arc<Inner>);
 
 #[derive(Debug, Default)]
 struct Inner {
@@ -38,6 +42,11 @@ struct Inner {
 }
 
 impl Clients {
+    /// Shuts down all connected clients.
+    ///
+    /// This method gracefully disconnects all active client connections managed by
+    /// this registry. It will wait for all clients to complete their shutdown before
+    /// returning.
     pub async fn shutdown(&self) {
         let keys: Vec<_> = self.0.clients.iter().map(|x| *x.key()).collect();
         trace!("shutting down {} clients", keys.len());
@@ -48,7 +57,10 @@ impl Clients {
     }
 
     /// Builds the client handler and starts the read & write loops for the connection.
-    pub async fn register(&self, client_config: Config, metrics: Arc<Metrics>) {
+    pub async fn register<S>(&self, client_config: Config<S>, metrics: Arc<Metrics>)
+    where
+        S: BytesStreamSink + Send + 'static,
+    {
         let endpoint_id = client_config.endpoint_id;
         let connection_id = self.get_connection_id();
         trace!(remote_endpoint = %endpoint_id.fmt_short(), "registering client");
@@ -201,8 +213,8 @@ mod tests {
     use super::*;
     use crate::{
         client::conn::Conn,
-        protos::{common::FrameType, relay::RelayToClientMsg},
-        server::streams::RelayedStream,
+        protos::{common::FrameType, relay::RelayToClientMsg, streams::WsBytesFramed},
+        server::streams::{MaybeTlsStream, RateLimited, RelayedStream},
     };
 
     async fn recv_frame<
@@ -228,7 +240,9 @@ mod tests {
         }
     }
 
-    fn test_client_builder(key: EndpointId) -> (Config, Conn) {
+    fn test_client_builder(
+        key: EndpointId,
+    ) -> (Config<WsBytesFramed<RateLimited<MaybeTlsStream>>>, Conn) {
         let (server, client) = tokio::io::duplex(1024);
         (
             Config {
