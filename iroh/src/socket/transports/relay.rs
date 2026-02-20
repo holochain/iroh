@@ -6,7 +6,7 @@ use std::{
 
 use bytes::Bytes;
 use iroh_base::{EndpointId, RelayUrl};
-use iroh_relay::protos::relay::Datagrams;
+use iroh_relay_holochain::protos::relay::Datagrams;
 use n0_future::{
     ready,
     task::{self, AbortOnDropHandle},

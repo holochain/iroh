@@ -25,11 +25,11 @@ use std::{
 
 use http::StatusCode;
 use iroh_base::RelayUrl;
-use iroh_relay::{
+use iroh_relay_holochain::{
     RelayConfig, RelayMap, defaults::DEFAULT_RELAY_QUIC_PORT, http::RELAY_PROBE_PATH,
 };
 #[cfg(not(wasm_browser))]
-use iroh_relay::{
+use iroh_relay_holochain::{
     dns::{DnsError, DnsResolver, StaggeredError},
     quic::QuicClient,
 };
@@ -873,7 +873,7 @@ async fn run_https_probe(
 mod tests {
     use std::net::Ipv4Addr;
 
-    use iroh_relay::dns::DnsResolver;
+    use iroh_relay_holochain::dns::DnsResolver;
     use n0_error::{Result, StdResultExt};
     use n0_tracing_test::traced_test;
 
@@ -896,12 +896,12 @@ mod tests {
     async fn test_qad_probe_v4() -> Result {
         let (server, relay) = test_utils::relay().await;
         let relay = Arc::new(relay);
-        let client_config = iroh_relay::client::make_dangerous_client_config();
+        let client_config = iroh_relay_holochain::client::make_dangerous_client_config();
         let ep =
             quinn::Endpoint::client(SocketAddr::new(Ipv4Addr::LOCALHOST.into(), 0)).anyerr()?;
         let client_addr = ep.local_addr().anyerr()?;
 
-        let quic_client = iroh_relay::quic::QuicClient::new(ep.clone(), client_config);
+        let quic_client = iroh_relay_holochain::quic::QuicClient::new(ep.clone(), client_config);
         let dns_resolver = DnsResolver::default();
 
         let (report, conn) =

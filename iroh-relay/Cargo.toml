@@ -1,12 +1,12 @@
 [package]
-name = "iroh-relay"
+name = "iroh-relay-holochain"
 version = "0.96.1"
 edition = "2024"
 readme = "README.md"
-description = "Iroh's relay server and client"
+description = "Iroh's relay server and client - Holochain fork"
 license = "MIT OR Apache-2.0"
 authors = ["n0 team"]
-repository = "https://github.com/n0-computer/iroh"
+repository = "https://github.com/holochain/iroh"
 keywords = ["networking", "holepunching", "p2p"]
 rust-version = "1.89"
 

@@ -16,7 +16,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use iroh_base::{EndpointAddr, EndpointId, RelayUrl, SecretKey, TransportAddr};
-use iroh_relay::{RelayConfig, RelayMap};
+use iroh_relay_holochain::{RelayConfig, RelayMap};
 #[cfg(not(wasm_browser))]
 use n0_error::bail;
 use n0_error::{e, ensure, stack_error};

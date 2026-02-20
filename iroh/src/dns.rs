@@ -7,7 +7,7 @@
 //! See the [`endpoint_info`](crate::endpoint_info) module documentation for details on how
 //! iroh endpoint records are structured.
 
-pub use iroh_relay::dns::{
+pub use iroh_relay_holochain::dns::{
     DnsResolver, N0_DNS_ENDPOINT_ORIGIN_PROD, N0_DNS_ENDPOINT_ORIGIN_STAGING,
 };
 

@@ -6,7 +6,7 @@
 
 use std::{collections::BTreeSet, fmt, sync::Arc};
 
-use iroh_relay::{RelayConfig, RelayMap};
+use iroh_relay_holochain::{RelayConfig, RelayMap};
 use n0_future::time::Duration;
 
 use crate::net_report::Report;

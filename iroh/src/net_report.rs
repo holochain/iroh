@@ -22,12 +22,12 @@ use defaults::timeouts::PROBES_TIMEOUT;
 pub use defaults::timeouts::TIMEOUT;
 use iroh_base::RelayUrl;
 #[cfg(not(wasm_browser))]
-use iroh_relay::RelayConfig;
+use iroh_relay_holochain::RelayConfig;
 #[cfg(not(wasm_browser))]
-use iroh_relay::dns::DnsResolver;
+use iroh_relay_holochain::dns::DnsResolver;
 #[cfg(not(wasm_browser))]
-use iroh_relay::quic::QuicClient;
-use iroh_relay::{
+use iroh_relay_holochain::quic::QuicClient;
+use iroh_relay_holochain::{
     RelayMap,
     quic::{QUIC_ADDR_DISC_CLOSE_CODE, QUIC_ADDR_DISC_CLOSE_REASON},
 };
@@ -90,7 +90,7 @@ enum QadProbeError {
     #[error("Missing host in relay URL")]
     MissingHost,
     #[error("QUIC connection failed")]
-    Quic { source: iroh_relay::quic::Error },
+    Quic { source: iroh_relay_holochain::quic::Error },
     #[error("Receiver dropped")]
     ReceiverDropped,
 }
@@ -242,7 +242,7 @@ impl Client {
         #[cfg(not(wasm_browser))]
         let quic_client = opts
             .quic_config
-            .map(|c| iroh_relay::quic::QuicClient::new(c.ep, c.client_config));
+            .map(|c| iroh_relay_holochain::quic::QuicClient::new(c.ep, c.client_config));
 
         #[cfg(not(wasm_browser))]
         let socket_state = SocketState {
@@ -947,7 +947,7 @@ async fn run_probe_v6(
 mod test_utils {
     //! Creates a relay server against which to perform tests
 
-    use iroh_relay::{RelayConfig, RelayQuicConfig, server};
+    use iroh_relay_holochain::{RelayConfig, RelayQuicConfig, server};
 
     pub(crate) async fn relay() -> (server::Server, RelayConfig) {
         let server = server::Server::spawn(server::testing::server_config())
@@ -985,7 +985,7 @@ mod tests {
     use std::net::{Ipv4Addr, SocketAddr};
 
     use iroh_base::RelayUrl;
-    use iroh_relay::dns::DnsResolver;
+    use iroh_relay_holochain::dns::DnsResolver;
     use n0_error::{Result, StdResultExt};
     use n0_tracing_test::traced_test;
     use tokio_util::sync::CancellationToken;
@@ -997,7 +997,7 @@ mod tests {
     #[traced_test]
     async fn test_basic() -> Result<()> {
         let (server, relay) = test_utils::relay().await;
-        let client_config = iroh_relay::client::make_dangerous_client_config();
+        let client_config = iroh_relay_holochain::client::make_dangerous_client_config();
         let ep =
             quinn::Endpoint::client(SocketAddr::new(Ipv4Addr::LOCALHOST.into(), 0)).anyerr()?;
         let quic_addr_disc = QuicConfig {

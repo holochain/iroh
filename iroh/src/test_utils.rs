@@ -2,7 +2,7 @@
 use std::net::Ipv4Addr;
 
 use iroh_base::RelayUrl;
-use iroh_relay::{
+use iroh_relay_holochain::{
     RelayConfig, RelayMap, RelayQuicConfig,
     server::{
         AccessConfig, CertConfig, QuicConfig, RelayConfig as RelayServerConfig, Server,
@@ -40,7 +40,7 @@ pub async fn run_relay_server() -> Result<(RelayMap, RelayUrl, Server), SpawnErr
 ///
 /// The return value is similar to [`run_relay_server`].
 pub async fn run_relay_server_with(quic: bool) -> Result<(RelayMap, RelayUrl, Server), SpawnError> {
-    let (certs, server_config) = iroh_relay::server::testing::self_signed_tls_certs_and_config();
+    let (certs, server_config) = iroh_relay_holochain::server::testing::self_signed_tls_certs_and_config();
 
     let tls = TlsConfig {
         cert: CertConfig::<(), ()>::Manual { certs },
@@ -350,7 +350,7 @@ pub(crate) mod pkarr_dns_state {
     };
 
     use iroh_base::EndpointId;
-    use iroh_relay::endpoint_info::{EndpointIdExt, EndpointInfo, IROH_TXT_NAME};
+    use iroh_relay_holochain::endpoint_info::{EndpointIdExt, EndpointInfo, IROH_TXT_NAME};
     use pkarr::SignedPacket;
     use tracing::debug;
 
