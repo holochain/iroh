@@ -1,5 +1,5 @@
 [package]
-name = "iroh-base"
+name = "iroh-base-holochain"
 version = "0.95.1"
 edition = "2024"
 readme = "README.md"
@@ -11,13 +11,24 @@ repository = "https://github.com/n0-computer/iroh"
 # Sadly this also needs to be updated in .github/workflows/ci.yml
 rust-version = "1.85"
 
+[lib]
+name = "iroh_base"
+
 [lints]
 workspace = true
 
 [dependencies]
-curve25519-dalek = { version = "=5.0.0-pre.1", features = ["serde", "rand_core", "zeroize"], optional = true }
+curve25519-dalek = { version = "=5.0.0-pre.1", features = [
+  "serde",
+  "rand_core",
+  "zeroize",
+], optional = true }
 data-encoding = { version = "2.3.3", optional = true }
-ed25519-dalek = { version = "=3.0.0-pre.1", features = ["serde", "rand_core", "zeroize"], optional = true }
+ed25519-dalek = { version = "=3.0.0-pre.1", features = [
+  "serde",
+  "rand_core",
+  "zeroize",
+], optional = true }
 derive_more = { version = "2.0.1", features = ["display"], optional = true }
 url = { version = "2.5.3", features = ["serde"], optional = true }
 rand_core = { version = "0.9.3", optional = true }
@@ -48,10 +59,7 @@ key = [
   "dep:zeroize_derive",
   "relay",
 ]
-relay = [
-  "dep:url",
-  "dep:derive_more",
-]
+relay = ["dep:url", "dep:derive_more"]
 
 [package.metadata.docs.rs]
 all-features = true
