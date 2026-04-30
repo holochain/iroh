@@ -37,6 +37,8 @@ pub mod protos;
 pub mod quic;
 #[cfg(feature = "server")]
 pub mod server;
+#[cfg(feature = "server")]
+pub use server::streams::Bucket;
 pub mod tls;
 
 mod ping_tracker;
